@@ -1561,6 +1561,7 @@ async function queryCustomAPI(text, isMCQ, isMultipleChoice, config) {
             case 'openai':
             case 'azure':
             case 'deepseek':
+            case 'openrouter':
                 responseText = data.choices?.[0]?.message?.content;
                 break;
                 
