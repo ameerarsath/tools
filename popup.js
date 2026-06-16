@@ -561,6 +561,11 @@ async function fetchAccountInfo() {
                 } else {
                     document.getElementById('azureFieldsDiv')?.classList.add('hidden');
                 }
+                if (result.aiProvider === 'openrouter') {
+                    document.getElementById('openrouterHintDiv')?.classList.remove('hidden');
+                } else {
+                    document.getElementById('openrouterHintDiv')?.classList.add('hidden');
+                }
             } else {
                 // If no provider is saved, hide custom endpoint field by default
                 customEndpointDiv.classList.add('hidden');
@@ -642,6 +647,15 @@ async function fetchAccountInfo() {
                     azureFieldsDiv.classList.remove('hidden');
                 } else {
                     azureFieldsDiv.classList.add('hidden');
+                }
+            }
+            // Show/hide OpenRouter hint
+            const openrouterHintDiv = document.getElementById('openrouterHintDiv');
+            if (openrouterHintDiv) {
+                if (this.value === 'openrouter') {
+                    openrouterHintDiv.classList.remove('hidden');
+                } else {
+                    openrouterHintDiv.classList.add('hidden');
                 }
             }
             

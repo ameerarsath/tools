@@ -1498,6 +1498,23 @@ async function queryCustomAPI(text, isMCQ, isMultipleChoice, config) {
                     messages: [{ role: 'user', content: prompt }]
                 };
                 break;
+
+            case 'openrouter':
+                // OpenRouter: OpenAI-compatible aggregator — 100+ models via one API
+                apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'https://github.com/ameerarsath/tools',
+                    'X-Title': 'NeoPass'
+                };
+                requestBody = {
+                    model: modelName || 'openai/gpt-4o',
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: isMCQ ? 0.3 : 0.1,
+                    max_tokens: isMCQ ? 512 : 16000
+                };
+                break;
                 
             default:
                 return {
