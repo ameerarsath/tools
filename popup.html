@@ -761,8 +761,17 @@
                         
                         <!-- API Configuration Form (visible by default for free users) -->
                         <div id="customAPIForm" style="margin-top: 12px;">
+                            
+                            <!-- Status message when config.json is used -->
+                            <div id="configFileStatus" class="hidden" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.4);border-radius:8px;padding:10px 12px;margin-bottom:12px;">
+                                <div style="font-size:0.7rem;color:#34d399;font-weight:bold;margin-bottom:4px;">✅ Configured via config.json</div>
+                                <div style="font-size:0.65rem;color:#a7f3d0;line-height:1.5;">
+                                    API keys are loaded from your local config file. Select your active provider below.
+                                </div>
+                            </div>
+
                             <div class="mb-4">
-                                <label for="aiProvider" class="block text-sm mb-2" style="font-weight: bold; font-size: 0.75rem;">AI Provider:</label>
+                                <label for="aiProvider" class="block text-sm mb-2" style="font-weight: bold; font-size: 0.75rem;">Active AI Provider:</label>
                                 <select id="aiProvider" class="glow-input" style="font-size: 0.75rem;">
                                     <option value="openai">OpenAI</option>
                                     <option value="anthropic">Claude (Anthropic)</option>
@@ -773,6 +782,8 @@
                                     <option value="custom">Custom Provider</option>
                                 </select>
                             </div>
+                            
+                            <div id="manualConfigFields">
                             
                             <div class="mb-4" id="customEndpointDiv" class="hidden">
                                 <label for="customEndpoint" class="block text-sm mb-2" style="font-weight: bold; font-size: 0.75rem;">Custom API Endpoint:</label>
@@ -825,6 +836,7 @@
                             <button id="testAPIConfig" class="glow-button" style="width: 100%; padding: 8px; font-size: 0.75rem;">
                                 Test Connection
                             </button>
+                            </div> <!-- end manualConfigFields -->
                         </div>
                     </div>
                     

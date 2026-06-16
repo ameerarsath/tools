@@ -1,0 +1,39 @@
+{
+  "_readme": "Edit this file with your API keys, then reload the extension (chrome://extensions → reload). Select active provider from the popup dropdown.",
+
+  "activeProvider": "azure",
+
+  "providers": {
+    "azure": {
+      "apiKey": "",
+      "endpoint": "https://YOUR-RESOURCE.openai.azure.com/",
+      "deployment": "gpt-4o",
+      "apiVersion": "2024-12-01-preview"
+    },
+    "openai": {
+      "apiKey": "",
+      "model": "gpt-4o"
+    },
+    "openrouter": {
+      "apiKey": "",
+      "model": "openai/gpt-4o"
+    },
+    "google": {
+      "apiKey": "",
+      "model": "gemini-2.0-flash-001"
+    },
+    "anthropic": {
+      "apiKey": "",
+      "model": "claude-3-5-sonnet-20241022"
+    },
+    "deepseek": {
+      "apiKey": "",
+      "model": "deepseek-chat"
+    },
+    "custom": {
+      "apiKey": "",
+      "endpoint": "",
+      "model": ""
+    }
+  }
+}

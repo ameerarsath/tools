@@ -18,6 +18,7 @@
         "data/answer-popup.html",
         "data/answer-popup.js",
         "metadata.json",
+        "config.json",
         "contentScript.js",
         "manifest.json",
         "data/inject/mock_code/mock_manifest.json",

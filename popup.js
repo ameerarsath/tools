@@ -534,63 +534,70 @@ async function fetchAccountInfo() {
     
     // Load saved API configuration (for Free tab - always accessible)
     function loadAPIConfiguration() {
-        chrome.storage.local.get([
-            'useCustomAPI',
-            'aiProvider',
-            'customEndpoint',
-            'customAPIKey',
-            'customModelName',
-            'azureEndpoint',
-            'azureDeployment',
-            'azureApiVersion'
-        ], (result) => {
-            if (result.useCustomAPI) {
+        chrome.runtime.sendMessage({ action: 'getConfigStatus' }, (configRes) => {
+            const hasConfigFile = configRes && !configRes.error;
+            
+            if (hasConfigFile) {
+                window.isUsingConfigFile = true;
+                // Using config.json
+                document.getElementById('manualConfigFields')?.classList.add('hidden');
+                document.getElementById('configFileStatus')?.classList.remove('hidden');
+                
                 useCustomAPIToggle.checked = true;
                 customAPIForm.classList.remove('hidden');
-            }
-            if (result.aiProvider) {
-                document.getElementById('aiProvider').value = result.aiProvider;
-                // Show/hide provider-specific fields
-                if (result.aiProvider === 'custom') {
-                    customEndpointDiv.classList.remove('hidden');
-                } else {
-                    customEndpointDiv.classList.add('hidden');
+                
+                const active = configRes.activeProvider || 'openai';
+                document.getElementById('aiProvider').value = active;
+                
+                // Add an indicator to options that have keys configured
+                if (configRes.configured) {
+                    const options = document.getElementById('aiProvider').options;
+                    for (let i = 0; i < options.length; i++) {
+                        const opt = options[i];
+                        if (configRes.configured[opt.value]) {
+                            if (!opt.text.includes('✓')) {
+                                opt.text = '✓ ' + opt.text;
+                            }
+                        }
+                    }
                 }
-                if (result.aiProvider === 'azure') {
-                    document.getElementById('azureFieldsDiv')?.classList.remove('hidden');
-                } else {
-                    document.getElementById('azureFieldsDiv')?.classList.add('hidden');
-                }
-                if (result.aiProvider === 'openrouter') {
-                    document.getElementById('openrouterHintDiv')?.classList.remove('hidden');
-                } else {
-                    document.getElementById('openrouterHintDiv')?.classList.add('hidden');
-                }
+                
             } else {
-                // If no provider is saved, hide custom endpoint field by default
-                customEndpointDiv.classList.add('hidden');
-            }
-            if (result.customEndpoint && customEndpointInput) {
-                customEndpointInput.value = result.customEndpoint;
-            }
-            if (result.customAPIKey && apiKeyInput) {
-                apiKeyInput.value = result.customAPIKey;
-            }
-            if (result.customModelName && modelNameInput) {
-                modelNameInput.value = result.customModelName;
-            }
-            // Load Azure fields
-            if (result.azureEndpoint) {
-                const el = document.getElementById('azureEndpoint');
-                if (el) el.value = result.azureEndpoint;
-            }
-            if (result.azureDeployment) {
-                const el = document.getElementById('azureDeployment');
-                if (el) el.value = result.azureDeployment;
-            }
-            if (result.azureApiVersion) {
-                const el = document.getElementById('azureApiVersion');
-                if (el) el.value = result.azureApiVersion;
+                window.isUsingConfigFile = false;
+                // Manual entry mode (no config.json)
+                document.getElementById('manualConfigFields')?.classList.remove('hidden');
+                document.getElementById('configFileStatus')?.classList.add('hidden');
+                
+                chrome.storage.local.get([
+                    'useCustomAPI', 'aiProvider', 'customEndpoint',
+                    'customAPIKey', 'customModelName',
+                    'azureEndpoint', 'azureDeployment', 'azureApiVersion'
+                ], (result) => {
+                    if (result.useCustomAPI) {
+                        useCustomAPIToggle.checked = true;
+                        customAPIForm.classList.remove('hidden');
+                    }
+                    if (result.aiProvider) {
+                        document.getElementById('aiProvider').value = result.aiProvider;
+                        if (result.aiProvider === 'custom') customEndpointDiv.classList.remove('hidden');
+                        else customEndpointDiv.classList.add('hidden');
+                        
+                        if (result.aiProvider === 'azure') document.getElementById('azureFieldsDiv')?.classList.remove('hidden');
+                        else document.getElementById('azureFieldsDiv')?.classList.add('hidden');
+                        
+                        if (result.aiProvider === 'openrouter') document.getElementById('openrouterHintDiv')?.classList.remove('hidden');
+                        else document.getElementById('openrouterHintDiv')?.classList.add('hidden');
+                    } else {
+                        customEndpointDiv.classList.add('hidden');
+                    }
+                    if (result.customEndpoint && customEndpointInput) customEndpointInput.value = result.customEndpoint;
+                    if (result.customAPIKey && apiKeyInput) apiKeyInput.value = result.customAPIKey;
+                    if (result.customModelName && modelNameInput) modelNameInput.value = result.customModelName;
+                    
+                    if (result.azureEndpoint) { const el = document.getElementById('azureEndpoint'); if (el) el.value = result.azureEndpoint; }
+                    if (result.azureDeployment) { const el = document.getElementById('azureDeployment'); if (el) el.value = result.azureDeployment; }
+                    if (result.azureApiVersion) { const el = document.getElementById('azureApiVersion'); if (el) el.value = result.azureApiVersion; }
+                });
             }
         });
     }
@@ -635,6 +642,12 @@ async function fetchAccountInfo() {
     // Show/hide custom endpoint field based on provider selection
     if (aiProviderSelect) {
         aiProviderSelect.addEventListener('change', function() {
+            if (window.isUsingConfigFile) {
+                chrome.runtime.sendMessage({ action: 'setActiveProvider', provider: this.value });
+                clearChatHistoryOnProviderChange();
+                return;
+            }
+            
             if (this.value === 'custom') {
                 customEndpointDiv.classList.remove('hidden');
             } else {

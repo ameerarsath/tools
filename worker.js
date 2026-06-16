@@ -1362,30 +1362,59 @@ async function queryRequest(text, isMCQ = false, isMultipleChoice = false, tabId
         unblockRequests();
     }
 }// Helper function to get custom API configuration
+// Priority: config.json (file-based) → chrome.storage (popup-entered)
 async function getCustomAPIConfig() {
-    return new Promise((resolve) => {
+    // --- 1. Try loading config.json (the .env equivalent) ---
+    let fileConfig = null;
+    try {
+        const url = chrome.runtime.getURL('config.json');
+        const res = await fetch(url);
+        if (res.ok) {
+            fileConfig = await res.json();
+        }
+    } catch (e) {
+        console.log('[Config] config.json not found, using popup settings.');
+    }
+
+    // --- 2. Load chrome.storage (popup-entered values) ---
+    const stored = await new Promise((resolve) => {
         chrome.storage.local.get([
-            'useCustomAPI',
-            'aiProvider',
-            'customEndpoint',
-            'customAPIKey',
-            'customModelName',
-            'azureEndpoint',
-            'azureDeployment',
-            'azureApiVersion'
-        ], (result) => {
-            resolve({
-                useCustomAPI: result.useCustomAPI || false,
-                aiProvider: result.aiProvider || 'openai',
-                customEndpoint: result.customEndpoint || '',
-                apiKey: result.customAPIKey || '',
-                modelName: result.customModelName || '',
-                azureEndpoint: result.azureEndpoint || '',
-                azureDeployment: result.azureDeployment || '',
-                azureApiVersion: result.azureApiVersion || '2024-12-01-preview'
-            });
-        });
+            'useCustomAPI', 'aiProvider', 'customEndpoint',
+            'customAPIKey', 'customModelName',
+            'azureEndpoint', 'azureDeployment', 'azureApiVersion'
+        ], resolve);
     });
+
+    // --- 3. Determine active provider ---
+    // User's popup dropdown selection (stored) takes priority over config.json default
+    const activeProvider = stored.aiProvider || (fileConfig && fileConfig.activeProvider) || 'openai';
+    const providerConfig = fileConfig && fileConfig.providers && fileConfig.providers[activeProvider];
+
+    // --- 4. Build final config, preferring config.json values ---
+    const apiKey       = (providerConfig && providerConfig.apiKey)    || stored.customAPIKey    || '';
+    const modelName    = (providerConfig && providerConfig.model)      || stored.customModelName || '';
+    const customEndpoint = (providerConfig && providerConfig.endpoint) || stored.customEndpoint  || '';
+
+    // Azure-specific fields
+    const azureEndpoint   = (providerConfig && providerConfig.endpoint)   || stored.azureEndpoint   || '';
+    const azureDeployment = (providerConfig && providerConfig.deployment) || stored.azureDeployment || '';
+    const azureApiVersion = (providerConfig && providerConfig.apiVersion) || stored.azureApiVersion || '2024-12-01-preview';
+
+    const hasConfig = apiKey.length > 0;
+
+    return {
+        useCustomAPI: hasConfig || stored.useCustomAPI || false,
+        aiProvider:   activeProvider,
+        customEndpoint,
+        apiKey,
+        modelName,
+        azureEndpoint,
+        azureDeployment,
+        azureApiVersion,
+        // Pass along for popup sync
+        _fromFile: !!providerConfig,
+        _activeProvider: activeProvider
+    };
 }
 
 // Function to query custom AI API
@@ -1807,6 +1836,42 @@ Respond with ONLY the code:`;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+    // ── Config status: popup reads config.json to build quick-switch UI ──
+    if (request.action === 'getConfigStatus') {
+        (async () => {
+            try {
+                const url = chrome.runtime.getURL('config.json');
+                const res = await fetch(url);
+                if (!res.ok) { sendResponse({ error: 'config.json not found' }); return; }
+                const cfg = await res.json();
+                
+                // Get user's active choice from storage, fallback to config.json default
+                const stored = await new Promise(resolve => chrome.storage.local.get(['aiProvider'], resolve));
+                const activeProvider = stored.aiProvider || cfg.activeProvider || 'openai';
+
+                // Report which providers have keys filled in
+                const configured = {};
+                for (const [name, prov] of Object.entries(cfg.providers || {})) {
+                    configured[name] = !!(prov.apiKey && prov.apiKey.trim().length > 0);
+                }
+                sendResponse({ activeProvider, configured });
+            } catch (e) {
+                sendResponse({ error: e.message });
+            }
+        })();
+        return true;
+    }
+
+    // ── Set active provider: popup dropdown writes back to storage ────────
+    if (request.action === 'setActiveProvider') {
+        chrome.storage.local.set({
+            aiProvider: request.provider,
+            useCustomAPI: true
+        }, () => sendResponse({ ok: true }));
+        return true;
+    }
+
     if (request.action === 'extractData') {
         (async () => {
             try {
