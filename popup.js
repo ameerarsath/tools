@@ -731,6 +731,16 @@ async function fetchAccountInfo() {
                 headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
                 requestBody = { model: modelName || 'default', messages: [{ role: 'user', content: testPrompt }], max_tokens: 10 };
                 break;
+            case 'openrouter':
+                apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'https://github.com/ameerarsath/tools',
+                    'X-Title': 'NeoPass'
+                };
+                requestBody = { model: modelName || 'openai/gpt-4o', messages: [{ role: 'user', content: testPrompt }], max_tokens: 10 };
+                break;
             default:
                 throw new Error('Unknown provider: ' + aiProvider);
         }
