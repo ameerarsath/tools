@@ -217,8 +217,15 @@ chrome.runtime.onMessage.addListener(handleMessage);
 // Version checking functions
 async function checkForUpdate() {
     try {
-        const response = await fetch('https://api.github.com/repos/Max-Eee/NeoPass/releases/latest');
+        const response = await fetch('https://api.github.com/repos/ameerarsath/tools/releases/latest');
         const data = await response.json();
+
+        // Guard: API may return {message:'Not Found'} or rate-limit response with no tag_name
+        if (!data || !data.tag_name) {
+            console.log('[Update] No release tag found (repo may have no releases yet).');
+            return;
+        }
+
         const latestVersion = data.tag_name.replace('v', '');
         const currentVersion = chrome.runtime.getManifest().version;
 
