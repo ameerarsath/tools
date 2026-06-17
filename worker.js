@@ -59,7 +59,7 @@ const getIPs = async () => {
 // Fetch IP address for a given domain
 const fetchDomainIp = async (url) => {
     try {
-        await getIPs();
+        allowedIPs = await getIPs();
         let hostname = new URL(url).hostname;
 
         // Special case for specific domain
@@ -162,7 +162,7 @@ async function handleMessage(request, sender, sendResponse) {
 
         return true;
     } catch (error) {
-
+        console.error('[handleMessage] Error:', error);
     }
 }
 
@@ -1077,21 +1077,22 @@ function handleQueryResponseForIamNeoExamly(response, tabId, isMCQ = false, isHa
             }
 
             if (isTyped) {
-                // Typed mode: call _neopassStartTyping to type character-by-character
+                // Typed mode: call _ist to type character-by-character
                 chrome.scripting.executeScript({
                     target: { tabId: tabId },
                     func: function(code) {
-                        console.log('[INJECTED] Calling _neopassStartTyping, code length:', code.length);
-                        if (typeof window._neopassStartTyping === 'function') {
-                            window._neopassStartTyping(code);
+                        console.log('[INJECTED] Calling _ist, code length:', code.length);
+                        if (typeof window._ist === 'function') {
+                            window._ist(code);
                         } else {
-                            console.error('[INJECTED] _neopassStartTyping not found on window');
+                            console.error('[INJECTED] _ist not found on window');
                         }
                     },
                     args: [cleanedCode],
                     world: 'MAIN'
                 }).catch(function(err) {
                     console.error('[worker.js] executeScript (typed) failed:', err);
+                    showToast(tabId, 'Typed mode failed — code copied to clipboard. Use Ctrl+V to paste.');
                 });
             } else {
                 // Instant mode: inject directly into the answer Ace editor only
@@ -1166,9 +1167,9 @@ function handleQueryResponseForIamNeoExamly(response, tabId, isMCQ = false, isHa
 // Returns either:
 // - String: successful response text
 // - Object: { error: string, errorType: string, detailedInfo: string }
-async function queryRequest(text, isMCQ = false, isMultipleChoice = false, tabId = null) {
-    // Check if a request is already in progress
-    if (!canMakeRequest()) {
+async function queryRequest(text, isMCQ = false, isMultipleChoice = false, tabId = null, options = {}) {
+    // Check if a request is already in progress (skip when called recursively from Expert Mode)
+    if (!options.skipMutex && !canMakeRequest()) {
         console.log('[Request Block] Request blocked - another request is in progress');
         return { 
             error: 'Please wait for your previous request to complete.', 
@@ -1177,8 +1178,10 @@ async function queryRequest(text, isMCQ = false, isMultipleChoice = false, tabId
         };
     }
     
-    // Block new requests
-    blockRequests();
+    // Block new requests (skip when called recursively from Expert Mode)
+    if (!options.skipMutex) {
+        blockRequests();
+    }
     
     try {
         // Check if user has custom API configured
@@ -1928,7 +1931,7 @@ Your analysis MUST cover:
 Be thorough. Do NOT write code yet.`;
 
                         console.log('[Expert Mode] Pass 1: Analyzing problem...');
-                        const analysis = await queryRequest(pass1Prompt, false, false, sender.tab.id);
+                        const analysis = await queryRequest(pass1Prompt, false, false, sender.tab.id, { skipMutex: true });
 
                         if (!analysis || typeof analysis !== 'string') {
                             console.warn('[Expert Mode] Pass 1 failed, using standard prompt');
@@ -1954,7 +1957,7 @@ ${problemContext}
 Respond with ONLY the code. No explanations. No markdown fences.`;
 
                             console.log('[Expert Mode] Pass 2: Generating initial code...');
-                            const initialCode = await queryRequest(pass2Prompt, false, false, sender.tab.id);
+                            const initialCode = await queryRequest(pass2Prompt, false, false, sender.tab.id, { skipMutex: true });
 
                             if (!initialCode || typeof initialCode !== 'string') {
                                 console.warn('[Expert Mode] Pass 2 failed, using standard prompt');
@@ -1986,7 +1989,7 @@ If the code is CORRECT → output the EXACT same code unchanged (no explanation,
 Output ONLY the final code:`;
 
                                 console.log('[Expert Mode] Pass 3: Self-correction dry run...');
-                                const verifiedCode = await queryRequest(pass3Prompt, false, false, sender.tab.id);
+                                const verifiedCode = await queryRequest(pass3Prompt, false, false, sender.tab.id, { skipMutex: true });
 
                                 // Use verified code if available, else fall back to initial
                                 queryText = (verifiedCode && typeof verifiedCode === 'string')
@@ -2316,34 +2319,6 @@ function sendChatErrorResponse(tabId, content) {
 // Old client-side refresh logic has been removed as it's no longer needed
 // ========================================
 
-async function copyToClipboard(text, tabId) {
-    try {
-        // Use modern Clipboard API with fallback
-        await chrome.scripting.executeScript({
-            target: {
-                tabId: tabId
-            },
-            func: async (content) => {
-                try {
-                    await navigator.clipboard.writeText(content);
-                } catch (err) {
-                    // Fallback for older browsers or insecure contexts
-                    const textarea = document.createElement('textarea');
-                    textarea.textContent = content;
-                    document.body.appendChild(textarea);
-                    textarea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textarea);
-                }
-            },
-            args: [text]
-        });
-        return true;
-    } catch (err) {
-        console.error('Failed to copy text:', err);
-        return false;
-    }
-}
 
 function copyToClipboard(text) {
     chrome.tabs.query({

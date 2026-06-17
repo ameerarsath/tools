@@ -312,7 +312,7 @@ async function fetchAccountInfo() {
                 if (currentTime - data.loginTimestamp > SESSION_DURATION) {
                     // Session expired, log out the user
                     logoutUser();
-                    showError('Your session has expired after 24 hours. Please log in again.', 5000);
+                    showError('Your session has expired after 12 hours. Please log in again.', 5000);
                 }
             }
         });
@@ -348,7 +348,7 @@ async function fetchAccountInfo() {
             const currentTime = Date.now();
             if (data.loginTimestamp && currentTime - data.loginTimestamp > SESSION_DURATION) {
                 logoutUser();
-                showError('Your session has expired after 24 hours. Please log in again.', 5000);
+                showError('Your session has expired after 12 hours. Please log in again.', 5000);
             } else {
                 showLoggedInState(data.username, data.isPro, data.tokenUsage);
                 initializeOpacityLevel(); // Initialize opacity level display
@@ -491,13 +491,7 @@ async function fetchAccountInfo() {
         });
     }
 
-    // Handle extension install/update
-    chrome.runtime.onInstalled.addListener(function(details) {
-        if (details.reason === 'install') {
-            chrome.storage.local.clear(); // Clear any existing data
-            showLoggedOutState();
-        }
-    });
+
 
     // Initialize toast opacity level from storage
     function initializeOpacityLevel() {

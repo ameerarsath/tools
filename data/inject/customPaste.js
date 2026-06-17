@@ -1,5 +1,5 @@
-async function performPasteByTyping() {
-    console.log('[PasteByTyping] Function called');
+﻿async function performPasteByTyping() {
+    void 0;
     
     const activeElement = document.activeElement;
     console.log('[PasteByTyping] Active element:', {
@@ -10,7 +10,7 @@ async function performPasteByTyping() {
     });
 
     if (!activeElement || !(activeElement.isContentEditable || activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
-        console.log('[PasteByTyping] No valid input element focused');
+        void 0;
         return;
     }
 
@@ -22,35 +22,35 @@ async function performPasteByTyping() {
         try {
             clipText = await navigator.clipboard.readText();
             clipboardSource = 'native';
-            console.log('[PasteByTyping] Using native clipboard:', clipText.substring(0, 100));
+            void 0;
         } catch (clipErr) {
-            console.log('[PasteByTyping] Native clipboard read failed:', clipErr.message);
+            void 0;
         }
         
         // If empty, fall back to our custom clipboard storage
-        if (!clipText && window.neoPassClipboard) {
-            clipText = window.neoPassClipboard;
-            clipboardSource = 'neoPassClipboard';
-            console.log('[PasteByTyping] Using neoPassClipboard:', clipText.substring(0, 100));
+        if (!clipText && window._xcb) {
+            clipText = window._xcb;
+            clipboardSource = '_xcb';
+            void 0;
         }
         
         if (!clipText) {
-            console.log('[PasteByTyping] No clipboard content available from any source');
-            alert('No clipboard content available. Please copy some text first.');
+            void 0;
+            // alert('No clipboard content available. Please copy some text first.');
             return;
         }
         
-        console.log('[PasteByTyping] Typing from', clipboardSource, '- Length:', clipText.length);
+        void 0;
 
         // Normalize line endings and filter out tab characters
         const textToType = clipText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\t/g, '');
         
-        window.isPasteByTypingActive = true;
+        window._pta = true;
         
         const stopTypingHandler = (e) => {
-            if (e.key === 'Backspace' && window.isPasteByTypingActive) {
-                console.log('[PasteByTyping] Stopping typing due to Backspace');
-                window.isPasteByTypingActive = false;
+            if (e.key === 'Backspace' && window._pta) {
+                void 0;
+                window._pta = false;
             }
         };
         
@@ -59,7 +59,7 @@ async function performPasteByTyping() {
         try {
             // Simulate typing character by character with realistic delays
             for (let i = 0; i < textToType.length; i++) {
-                if (!window.isPasteByTypingActive) {
+                if (!window._pta) {
                     break;
                 }
                 
@@ -117,15 +117,15 @@ async function performPasteByTyping() {
 
         // Dispatch change event after all typing is complete
         activeElement.dispatchEvent(new Event('change', { bubbles: true }));
-        console.log('[PasteByTyping] Typing complete');
+        void 0;
 
     } catch (err) {
-        console.error('[PasteByTyping] Error:', err);
+        void 0;
     }
 }
 
 async function performDragDropPaste() {
-    console.log('[DragDropPaste] Function called');
+    void 0;
     
     const activeElement = document.activeElement;
     console.log('[DragDropPaste] Active element:', {
@@ -136,7 +136,7 @@ async function performDragDropPaste() {
     });
 
     if (!activeElement || !(activeElement.isContentEditable || activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
-        console.log('[DragDropPaste] No valid input element focused');
+        void 0;
         return;
     }
 
@@ -148,25 +148,25 @@ async function performDragDropPaste() {
         try {
             clipText = await navigator.clipboard.readText();
             clipboardSource = 'native';
-            console.log('[DragDropPaste] Using native clipboard:', clipText.substring(0, 100));
+            void 0;
         } catch (clipErr) {
-            console.log('[DragDropPaste] Native clipboard read failed:', clipErr.message);
+            void 0;
         }
         
         // If empty, fall back to our custom clipboard storage
-        if (!clipText && window.neoPassClipboard) {
-            clipText = window.neoPassClipboard;
-            clipboardSource = 'neoPassClipboard';
-            console.log('[DragDropPaste] Using neoPassClipboard:', clipText.substring(0, 100));
+        if (!clipText && window._xcb) {
+            clipText = window._xcb;
+            clipboardSource = '_xcb';
+            void 0;
         }
         
         if (!clipText) {
-            console.log('[DragDropPaste] No clipboard content available from any source');
-            alert('No clipboard content available. Please copy some text first.');
+            void 0;
+            // alert('No clipboard content available. Please copy some text first.');
             return;
         }
         
-        console.log('[DragDropPaste] Pasting from', clipboardSource, '- Length:', clipText.length);
+        void 0;
 
         // Normalize line endings
         clipText = clipText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -335,7 +335,7 @@ async function performDragDropPaste() {
         }
     }, true);
 
-    console.log('[CustomPaste] Drag-drop and paste events enabled');
+    void 0;
 })();
 
 // Handle both Ctrl+V/Cmd+V (standard paste) and Alt+Shift+V/Option+Shift+V (drag-drop paste)
@@ -359,15 +359,15 @@ document.addEventListener('keydown', async function(event) {
                 // First try native clipboard (prioritize external app copies)
                 try {
                     clipText = await navigator.clipboard.readText();
-                    console.log('[Paste] Using native clipboard');
+                    void 0;
                 } catch (err) {
-                    console.log('[Paste] Native clipboard read failed:', err.message);
+                    void 0;
                 }
                 
-                // If empty, fall back to neoPassClipboard
-                if (!clipText && window.neoPassClipboard) {
-                    clipText = window.neoPassClipboard;
-                    console.log('[Paste] Using neoPassClipboard');
+                // If empty, fall back to _xcb
+                if (!clipText && window._xcb) {
+                    clipText = window._xcb;
+                    void 0;
                 }
                 
                 if (clipText) {
@@ -420,16 +420,16 @@ document.addEventListener('keydown', async function(event) {
                     
                     // If the content didn't change, fall back to typing method
                     if (finalLength === initialLength) {
-                        console.log('[Paste] Direct paste failed, falling back to typing method');
+                        void 0;
                         await performPasteByTyping();
                     } else {
-                        console.log('[Paste] Direct paste successful');
+                        void 0;
                     }
                 }
             } catch (err) {
-                console.error('[Paste] Error:', err);
+                void 0;
                 // If error occurs, try typing method as fallback
-                console.log('[Paste] Error occurred, falling back to typing method');
+                void 0;
                 await performPasteByTyping();
             }
         }

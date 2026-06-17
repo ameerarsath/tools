@@ -2,12 +2,12 @@
   /* port is used to communicate between chrome and page scripts */
   var port;
   try {
-    port = document.getElementById('lwys-ctv-port');
+    port = document.getElementById('_xp');
     port.remove();
   }
   catch (e) {
     port = document.createElement('span');
-    port.id = 'lwys-ctv-port';
+    port.id = '_xp';
     document.documentElement.append(port);
   }
 
@@ -17,14 +17,15 @@
     e.stopImmediatePropagation();
   };
 
-  /* visibility */
+  /* visibility — configurable: true so screenshare.js (MAIN world) can coexist */
   Object.defineProperty(document, 'visibilityState', {
     get() {
       if (port.dataset.enabled === 'false') {
         return port.dataset.hidden === 'true' ? 'hidden' : 'visible';
       }
       return 'visible';
-    }
+    },
+    configurable: true
   });
   Object.defineProperty(document, 'webkitVisibilityState', {
     get() {
@@ -32,7 +33,8 @@
         return port.dataset.hidden === 'true' ? 'hidden' : 'visible';
       }
       return 'visible';
-    }
+    },
+    configurable: true
   });
 
   const once = {
@@ -73,14 +75,15 @@
     }
   }, true);
 
-  /* hidden */
+  /* hidden — configurable: true */
   Object.defineProperty(document, 'hidden', {
     get() {
       if (port.dataset.enabled === 'false') {
         return port.dataset.hidden === 'true';
       }
       return false;
-    }
+    },
+    configurable: true
   });
   Object.defineProperty(document, 'webkitHidden', {
     get() {
@@ -88,18 +91,11 @@
         return port.dataset.hidden === 'true';
       }
       return false;
-    }
+    },
+    configurable: true
   });
 
-  /* focus */
-  Document.prototype.hasFocus = new Proxy(Document.prototype.hasFocus, {
-    apply(target, self, args) {
-      if (port.dataset.enabled === 'true' && port.dataset.focus !== 'false') {
-        return true;
-      }
-      return Reflect.apply(target, self, args);
-    }
-  });
+  /* focus — hasFocus override moved to screenshare.js MAIN world */
 
   const onfocus = e => {
     if (port.dataset.enabled === 'true' && port.dataset.focus !== 'false') {
@@ -134,31 +130,4 @@
       }
     }
   }, true);
-
-  /* requestAnimationFrame */
-  let lastTime = 0;
-  window.requestAnimationFrame = new Proxy(window.requestAnimationFrame, {
-    apply(target, self, args) {
-      if (port.dataset.enabled === 'true' && port.dataset.hidden === 'true') {
-        const currTime = Date.now();
-        const timeToCall = Math.max(0, 16 - (currTime - lastTime));
-        const id = setTimeout(function() {
-          args[0](performance.now());
-        }, timeToCall);
-        lastTime = currTime + timeToCall;
-        return id;
-      }
-      else {
-        return Reflect.apply(target, self, args);
-      }
-    }
-  });
-  window.cancelAnimationFrame = new Proxy(window.cancelAnimationFrame, {
-    apply(target, self, args) {
-      if (port.dataset.enabled === 'true' && port.dataset.hidden === 'true') {
-        clearTimeout(args[0]);
-      }
-      return Reflect.apply(target, self, args);
-    }
-  });
 })();

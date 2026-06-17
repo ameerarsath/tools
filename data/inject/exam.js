@@ -64,32 +64,23 @@ if (typeof window.isMac === 'undefined') {
   setInterval(checkForQuestionChange, 500);
   
   // Function to type the next character
+  // Type one line at a time (not char-by-char) to avoid O(n²) setValue lag
   function typeNextCharacter() {
     if (lineIndex < codeLines.length) {
       const currentLine = codeLines[lineIndex];
-
-      if (currentLine.trim().startsWith("//")) {
-        lineIndex++;
-        charIndex = 0;
-        typeNextCharacter();
-        return;
-      }
-
-      if (charIndex < currentLine.length) {
-        editor.setValue(editor.getValue() + currentLine[charIndex]);
-        editor.clearSelection(); // Clear selection
-        editor.navigateFileEnd(); // Move cursor to end
-        charIndex++;
-      } else {
-        editor.setValue(editor.getValue() + "\n");
-        editor.clearSelection(); // Clear selection
-        editor.navigateFileEnd(); // Move cursor to end
-        lineIndex++;
-        charIndex = 0;
+      const currentContent = editor.getValue();
+      const newContent = currentContent + (lineIndex > 0 ? '\n' : '') + currentLine;
+      editor.setValue(newContent);
+      editor.clearSelection();
+      editor.navigateFileEnd();
+      lineIndex++;
+      // Auto-advance with a human-like delay
+      if (isTyping) {
+        setTimeout(typeNextCharacter, 60 + Math.random() * 90);
       }
     } else {
       isTyping = false;
-      typingInitialized = false; // Reset initialization when typing is complete
+      typingInitialized = false;
     }
   }
 
@@ -101,7 +92,7 @@ if (typeof window.isMac === 'undefined') {
     // Handle backspace during typing
     if (event.key === "Backspace" && isTyping) {
       event.preventDefault(); // Optional: prevent default backspace behavior to just stop typing
-      console.log('Stopped paste by typing due to Backspace');
+      void 0;
       // Stop typing action
       isTyping = false;
       typingInitialized = false;
@@ -129,13 +120,14 @@ if (typeof window.isMac === 'undefined') {
         return;
       }
       
-      // Initial fetch is handled by content.js → worker.js → chrome.scripting.executeScript
-      // which calls window._neopassStartTyping(code) directly.
+      // Initial fetch is handled by content.js â†’ worker.js â†’ chrome.scripting.executeScript
+      // which calls window._ist(code) directly.
       return;
     }
 
     // Handle typing with just plain 'T' key after initialization (alternative method)
-    if (event.key.toLowerCase() === "t" && typingInitialized && !event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) {
+    const activeTag = document.activeElement?.tagName;
+    if (event.key.toLowerCase() === "t" && typingInitialized && !event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey && activeTag !== 'INPUT' && activeTag !== 'TEXTAREA' && activeTag !== 'SELECT') {
       if (isTyping) {
         event.preventDefault();
         typeNextCharacter();
@@ -145,9 +137,9 @@ if (typeof window.isMac === 'undefined') {
   });
 
   // Exposed for content.js to call via inline script injection (page context)
-  window._neopassStartTyping = function(codeToType) {
+  window._ist = function(codeToType) {
     if (!codeToType) return;
-    console.log('[exam.js] _neopassStartTyping called, length:', codeToType.length);
+    void 0;
     const found = findAnswerEditor();
     if (found) {
       try {
@@ -161,12 +153,12 @@ if (typeof window.isMac === 'undefined') {
         isTyping = true;
         typingInitialized = true;
         typeNextCharacter();
-        console.log('[exam.js] Started typing code');
+        void 0;
       } catch (error) {
-        console.error('[exam.js] Error in _neopassStartTyping:', error);
+        void 0;
       }
     } else {
-      console.error('[exam.js] No editor found for typing');
+      void 0;
     }
   };
 })();

@@ -1,10 +1,10 @@
-// Custom Ctrl+C override functionality - Prevents default copy on divs
+﻿// Custom Ctrl+C override functionality - Prevents default copy on divs
 (function() {
     'use strict';
 
     // Create an invisible textarea for our controlled copy operations
     const invisibleTextarea = document.createElement('textarea');
-    invisibleTextarea.id = 'neopass-invisible-copy';
+    invisibleTextarea.id = '_ci';
     invisibleTextarea.style.position = 'fixed';
     invisibleTextarea.style.opacity = '0';
     invisibleTextarea.style.pointerEvents = 'none';
@@ -19,30 +19,30 @@
     document.body.appendChild(invisibleTextarea);
 
     // Store the last copied text in a global variable for paste operations
-    window.neoPassClipboard = '';
+    window._xcb = '';
     
     // Flag to track when we're performing a custom copy operation
     let isCustomCopying = false;
 
-    // Override navigator.clipboard.writeText — only on HTTPS (clipboard API unavailable on HTTP)
+    // Override navigator.clipboard.writeText â€” only on HTTPS (clipboard API unavailable on HTTP)
     const originalWriteText = (window.isSecureContext && navigator.clipboard)
         ? navigator.clipboard.writeText.bind(navigator.clipboard)
         : null;
 
     if (originalWriteText && navigator.clipboard) {
         navigator.clipboard.writeText = async function(text) {
-            console.log('[CopyOverride] Intercepted clipboard writeText:', text.substring(0, 100));
-            window.neoPassClipboard = text; // Store for later paste
+            void 0;
+            window._xcb = text; // Store for later paste
             
             try {
                 await originalWriteText(text);
-                console.log('[CopyOverride] Successfully wrote to native clipboard');
+                void 0;
             } catch (err) {
-                console.log('[CopyOverride] Native clipboard write failed, using custom copy:', err);
+                void 0;
                 await customCopy(text);
             }
             
-            console.log('[CopyOverride] Stored in neoPassClipboard, length:', text.length);
+            void 0;
             return Promise.resolve();
         };
     }
@@ -53,7 +53,7 @@
         if (command === 'copy') {
             const activeElement = document.activeElement;
             if (activeElement !== invisibleTextarea) {
-                console.log('Intercepted execCommand copy, using custom copy');
+                void 0;
                 const text = activeElement.value || activeElement.textContent;
                 if (text) {
                     return customCopy(text);
@@ -73,15 +73,15 @@
             isCustomCopying = true;
             
             // Store in our global clipboard variable
-            window.neoPassClipboard = selectedText;
+            window._xcb = selectedText;
             
             // Try to write to native clipboard first (only on HTTPS)
             if (originalWriteText) {
                 try {
                     await originalWriteText(selectedText);
-                    console.log('[CopyOverride] Wrote to native clipboard via writeText');
+                    void 0;
                 } catch (clipErr) {
-                    console.log('[CopyOverride] writeText failed, using execCommand:', clipErr);
+                    void 0;
                 }
             }
             
@@ -90,7 +90,7 @@
             invisibleTextarea.setSelectionRange(0, selectedText.length);
 
             const success = originalExecCommand.call(document, 'copy');
-            console.log('Text copied using invisible textarea:', success, 'Stored in neoPassClipboard');
+            void 0;
             
             // Clear the textarea
             invisibleTextarea.value = '';
@@ -103,7 +103,7 @@
             
             return success;
         } catch (err) {
-            console.error('Copy using invisible textarea failed:', err);
+            void 0;
             isCustomCopying = false;
             return false;
         }
@@ -145,11 +145,11 @@
                 // Clear selection IMMEDIATELY to prevent spurious copy events
                 window.getSelection().removeAllRanges();
                 
-                console.log('[CopyOverride] Ctrl+C detected, initiating custom copy');
+                void 0;
                 
                 try {
                     // Store in global clipboard
-                    window.neoPassClipboard = selectedText;
+                    window._xcb = selectedText;
                     
                     // Perform custom copy with flag protection
                     const success = await customCopy(selectedText);
@@ -161,7 +161,7 @@
                     });
                     
                 } catch (error) {
-                    console.error('[CopyOverride] Error in custom copy handler:', error);
+                    void 0;
                     isCustomCopying = false; // Reset flag on error
                 }
             }
@@ -172,16 +172,16 @@
     document.addEventListener('contextmenu', function(event) {
         const selectedText = getSelectedText();
         if (selectedText) {
-            window.neoPassSelectedText = selectedText;
-            window.neoPassClipboard = selectedText; // Also store in main clipboard
+            window._xst = selectedText;
+            window._xcb = selectedText; // Also store in main clipboard
         }
     }, true);
 
     // Log clipboard status for debugging
-    window.getNeoPassClipboard = function() {
-        console.log('[CopyOverride] Current neoPassClipboard:', window.neoPassClipboard);
-        return window.neoPassClipboard;
+    window._gcb = function() {
+        void 0;
+        return window._xcb;
     };
 
-    console.log('Custom copy prevention initialized - default copy blocked on all elements');
+    void 0;
 })();

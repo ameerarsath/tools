@@ -7,14 +7,14 @@ if (typeof window.isMac === 'undefined') {
 
 (function() {
     chrome.storage.local.get(['stealth'], function(result) {
-        if (window.chatOverlayInjected) {
-            console.log("Chat overlay script already injected.");
+        if (window._coi) {
+            void 0;
             return;
         }
-        window.chatOverlayInjected = true;
+        window._coi = true;
         
         const isStealthModeEnabled = result.stealth === true;
-        console.log("Initial stealth mode state:", isStealthModeEnabled);
+        void 0;
 
 
         function loadShowdown() {
@@ -429,18 +429,18 @@ if (typeof window.isMac === 'undefined') {
 
         // Helper function to access elements in shadow DOM
         function getShadowElement(id) {
-            const shadowHost = document.getElementById('chat-overlay-shadow-host');
+            const shadowHost = document.getElementById('_co');
             if (!shadowHost || !shadowHost.shadowRoot) return null;
             return shadowHost.shadowRoot.getElementById(id);
         }
         
         function getShadowRoot() {
-            const shadowHost = document.getElementById('chat-overlay-shadow-host');
+            const shadowHost = document.getElementById('_co');
             return shadowHost ? shadowHost.shadowRoot : null;
         }
         
         function getChatButton() {
-            const buttonShadowHost = document.getElementById('chat-button-shadow-host');
+            const buttonShadowHost = document.getElementById('_cb');
             if (!buttonShadowHost || !buttonShadowHost.shadowRoot) return null;
             return buttonShadowHost.shadowRoot.getElementById('chat-button');
         }
@@ -772,14 +772,14 @@ if (typeof window.isMac === 'undefined') {
         // Create the main chat overlay UI
         function createChatOverlay() {
             // Check if shadow host already exists
-            let shadowHost = document.getElementById("chat-overlay-shadow-host");
+            let shadowHost = document.getElementById("_co");
             if (shadowHost) {
                 return shadowHost.shadowRoot.querySelector("#chat-overlay");
             }
 
             // Create shadow host element
             shadowHost = document.createElement("div");
-            shadowHost.id = "chat-overlay-shadow-host";
+            shadowHost.id = "_co";
             shadowHost.style.cssText = `
                 position: fixed;
                 bottom: 0;
@@ -839,7 +839,7 @@ if (typeof window.isMac === 'undefined') {
         </div>
         <div style="display: flex !important; gap: 14px !important; align-items: center !important;">
             <span id="clear-chat" style="cursor: pointer !important; font-size: 14px !important; font-weight: 600 !important; color: rgb(220, 53, 69) !important; padding: 4px 8px !important; transition: all 0.2s ease !important;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">Clear</span>
-            <span id="close-chat" style="cursor: pointer !important; font-size: 22px !important; line-height: 1 !important; color: #888 !important; transition: color 0.2s ease !important; font-weight: 500 !important;" onmouseover="this.style.color='#333'" onmouseout="this.style.color='#888'">×</span>
+            <span id="close-chat" style="cursor: pointer !important; font-size: 22px !important; line-height: 1 !important; color: #888 !important; transition: color 0.2s ease !important; font-weight: 500 !important;" onmouseover="this.style.color='#333'" onmouseout="this.style.color='#888'">Ã—</span>
         </div>
         `;
 
@@ -954,25 +954,25 @@ if (typeof window.isMac === 'undefined') {
                     // First try native clipboard (prioritize external app copies)
                     try {
                         clipText = await navigator.clipboard.readText();
-                        console.log('[ChatBot Paste] Using native clipboard, length:', clipText.length);
+                        void 0;
                     } catch (err) {
-                        console.log('[ChatBot Paste] Native clipboard read failed:', err.message);
+                        void 0;
                     }
                     
-                    // If empty, fall back to neoPassClipboard
-                    if (!clipText && window.neoPassClipboard) {
-                        clipText = window.neoPassClipboard;
-                        console.log('[ChatBot Paste] Using neoPassClipboard, length:', clipText.length);
+                    // If empty, fall back to _xcb
+                    if (!clipText && window._xcb) {
+                        clipText = window._xcb;
+                        void 0;
                     }
                     
                     // Also try clipboardData from the paste event
                     if (!clipText && e.clipboardData) {
                         clipText = e.clipboardData.getData('text/plain');
-                        console.log('[ChatBot Paste] Using event clipboardData, length:', clipText.length);
+                        void 0;
                     }
                     
                     if (clipText) {
-                        console.log('[ChatBot Paste] Attempting to insert text...');
+                        void 0;
                         let inserted = false;
                         
                         // Try method 1: Use selection API
@@ -991,16 +991,16 @@ if (typeof window.isMac === 'undefined') {
                                     selection.removeAllRanges();
                                     selection.addRange(range);
                                     inserted = true;
-                                    console.log('[ChatBot Paste] Inserted using selection API');
+                                    void 0;
                                 }
                             }
                         } catch (selErr) {
-                            console.log('[ChatBot Paste] Selection API failed:', selErr.message);
+                            void 0;
                         }
                         
                         // Fallback method 2: Direct textContent manipulation
                         if (!inserted) {
-                            console.log('[ChatBot Paste] Using fallback: direct insertion');
+                            void 0;
                             const currentText = this.textContent || '';
                             this.textContent = currentText + clipText;
                             
@@ -1022,7 +1022,7 @@ if (typeof window.isMac === 'undefined') {
                                 inputType: 'insertText',
                                 data: clipText
                             }));
-                            console.log('[ChatBot Paste] Paste successful');
+                            void 0;
                         }
                     }
                     
@@ -1034,7 +1034,7 @@ if (typeof window.isMac === 'undefined') {
                         }
                     }, 10);
                 } catch (err) {
-                    console.error('[ChatBot Paste] Error:', err);
+                    void 0;
                     // Fallback: let browser handle it
                     setTimeout(() => {
                         if (this.children.length > 0) {
@@ -1068,19 +1068,19 @@ if (typeof window.isMac === 'undefined') {
                         // First try native clipboard (prioritize external app copies)
                         try {
                             clipText = await navigator.clipboard.readText();
-                            console.log('[ChatBot Ctrl+V] Using native clipboard, length:', clipText.length);
+                            void 0;
                         } catch (err) {
-                            console.log('[ChatBot Ctrl+V] Native clipboard read failed:', err.message);
+                            void 0;
                         }
                         
-                        // If empty, fall back to neoPassClipboard
-                        if (!clipText && window.neoPassClipboard) {
-                            clipText = window.neoPassClipboard;
-                            console.log('[ChatBot Ctrl+V] Using neoPassClipboard, length:', clipText.length);
+                        // If empty, fall back to _xcb
+                        if (!clipText && window._xcb) {
+                            clipText = window._xcb;
+                            void 0;
                         }
                         
                         if (clipText) {
-                            console.log('[ChatBot Ctrl+V] Attempting to insert text...');
+                            void 0;
                             let inserted = false;
                             
                             // Try method 1: Use selection API
@@ -1099,16 +1099,16 @@ if (typeof window.isMac === 'undefined') {
                                         selection.removeAllRanges();
                                         selection.addRange(range);
                                         inserted = true;
-                                        console.log('[ChatBot Ctrl+V] Inserted using selection API');
+                                        void 0;
                                     }
                                 }
                             } catch (selErr) {
-                                console.log('[ChatBot Ctrl+V] Selection API failed:', selErr.message);
+                                void 0;
                             }
                             
                             // Fallback method 2: Direct textContent manipulation
                             if (!inserted) {
-                                console.log('[ChatBot Ctrl+V] Using fallback: direct insertion');
+                                void 0;
                                 const currentText = this.textContent || '';
                                 this.textContent = currentText + clipText;
                                 
@@ -1130,13 +1130,13 @@ if (typeof window.isMac === 'undefined') {
                                     inputType: 'insertText',
                                     data: clipText
                                 }));
-                                console.log('[ChatBot Ctrl+V] Paste successful');
+                                void 0;
                             }
                         } else {
-                            console.log('[ChatBot Ctrl+V] No clipboard content available');
+                            void 0;
                         }
                     } catch (err) {
-                        console.error('[ChatBot Ctrl+V] Error:', err);
+                        void 0;
                     }
                 }
             }, true); // Use capture phase to intercept before document-level handlers
@@ -1227,7 +1227,7 @@ if (typeof window.isMac === 'undefined') {
                             if (currentQuestionData) {
                                 extractedQuestion = formatQuestionForChat(currentQuestionData);
                                 lastQuestionHash = currentQuestionHash;
-                                console.log('Question changed and re-extracted for chat');
+                                void 0;
                                 
                                 // Clear chat history when question changes
                                 clearChatHistoryAndUI('question-switch');
@@ -1274,7 +1274,7 @@ if (typeof window.isMac === 'undefined') {
                     if (questionData) {
                         extractedQuestion = formatQuestionForChat(questionData);
                         lastQuestionHash = getQuestionHash(questionData);
-                        console.log('Question extracted for chat:', extractedQuestion);
+                        void 0;
                         
                         // Update label to show question is attached
                         checkboxLabel.style.color = 'rgb(60, 84, 114)';
@@ -1820,7 +1820,7 @@ if (typeof window.isMac === 'undefined') {
                         // If "Chat about question" is enabled, prepend the question
                         if (chatAboutQuestionEnabled && extractedQuestion) {
                             finalMessage = `Context: Below is the question I'm working on:\n\n${extractedQuestion}\n\n---\n\nMy Question: ${message}`;
-                            console.log('Sending message with question context');
+                            void 0;
                         }
                         
                         chatHistory.push({
@@ -1887,7 +1887,7 @@ if (typeof window.isMac === 'undefined') {
                         // No need to add the message here as it will be added via "updateChatHistory"
                     }
                     catch (error) {
-                        console.error("Error sending message:", error);
+                        void 0;
                         
                         // Remove loading indicator if it exists
                         const loadingMessage = getShadowElement("loading-message");
@@ -1952,14 +1952,14 @@ if (typeof window.isMac === 'undefined') {
         // Create the chat button
         function createChatButton() {
             // Check if shadow host for button already exists
-            let buttonShadowHost = document.getElementById("chat-button-shadow-host");
+            let buttonShadowHost = document.getElementById("_cb");
             if (buttonShadowHost) {
                 return buttonShadowHost.shadowRoot.querySelector("#chat-button");
             }
 
             // Create shadow host element for button
             buttonShadowHost = document.createElement("div");
-            buttonShadowHost.id = "chat-button-shadow-host";
+            buttonShadowHost.id = "_cb";
             buttonShadowHost.style.cssText = `
                 position: fixed;
                 bottom: 0;
@@ -2319,7 +2319,7 @@ if (typeof window.isMac === 'undefined') {
                             try {
                                 SimplePrism.highlightElement(codeBlock);
                             } catch (error) {
-                                console.warn('Failed to highlight code block:', error);
+                                void 0;
                                 // Continue without highlighting
                             }
                         }
@@ -2406,7 +2406,7 @@ if (typeof window.isMac === 'undefined') {
                                     }, 5000);
                                 })
                                 .catch(error => {
-                                    console.error("Failed to copy: ", error);
+                                    void 0;
                                 });
                         });
                 
@@ -2421,7 +2421,7 @@ if (typeof window.isMac === 'undefined') {
                     messageContainer.textContent = content;
                 }
             } catch (error) {
-                console.error('Error rendering chat content:', error);
+                void 0;
                 // Fallback to plain text
                 messageContainer.textContent = content;
             }
@@ -2652,7 +2652,7 @@ if (typeof window.isMac === 'undefined') {
         // Function to toggle chat overlay visibility
         function toggleChatOverlay() {
             isOverlayVisible = !isOverlayVisible;
-            const shadowHost = document.getElementById("chat-overlay-shadow-host");
+            const shadowHost = document.getElementById("_co");
             let chatOverlay = shadowHost ? shadowHost.shadowRoot.querySelector("#chat-overlay") : null;
 
             if (!chatOverlay) {
@@ -2716,10 +2716,10 @@ if (typeof window.isMac === 'undefined') {
                     }
                     
                     addNotificationMessage(notificationMessage);
-                    console.log(`Chat history cleared (${reason})`);
+                    void 0;
                 }
             } catch (error) {
-                console.error('Error clearing chat history:', error);
+                void 0;
             }
         }
 
@@ -2781,7 +2781,7 @@ if (typeof window.isMac === 'undefined') {
 
         // Set up document-level event handlers
         document.addEventListener("mousemove", (e) => {
-            const shadowHost = document.getElementById("chat-overlay-shadow-host");
+            const shadowHost = document.getElementById("_co");
             if (!shadowHost) return;
             const overlay = shadowHost.shadowRoot?.querySelector("#chat-overlay");
             if (!overlay) return;
@@ -2864,9 +2864,9 @@ if (typeof window.isMac === 'undefined') {
             try {
                 // Try to load showdown and our inline prism highlighter
                 await Promise.all([loadShowdown(), loadPrism()]);
-                console.log("Showdown and SimplePrism libraries loaded successfully");
+                void 0;
             } catch (error) {
-                console.error('Failed to load libraries:', error);
+                void 0;
                 // Continue even if libraries fail to load
             }
             
@@ -2896,7 +2896,7 @@ if (typeof window.isMac === 'undefined') {
                         overlay.style.opacity = "0.15";
                     }
                 } catch (error) {
-                    console.error('Error creating chat overlay:', error);
+                    void 0;
                 }
             });
         }
@@ -2910,7 +2910,7 @@ if (typeof window.isMac === 'undefined') {
                 // Clear error state when database or authentication changes occur
                 if (changes.accessToken || changes.refreshToken) {
                     clearErrorState();
-                    console.log("Auth state changed, cleared chat error state");
+                    void 0;
                 }
                 
                 if (changes.stealth) {

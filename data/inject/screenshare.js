@@ -1,9 +1,4 @@
-// Mac detection - only declare if not already declared
-let isMac;
-if (typeof isMac === 'undefined') {
-    isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 || 
-            navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
-}
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 || navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
 
 // Lists of events to intercept
 const windowEvents = [
@@ -16,15 +11,12 @@ const windowEvents = [
     "resize", 
     "pagehide", 
     'lostpointercapture', 
-    "fullscreenchange", 
-    "visibilitychange"
+    "fullscreenchange"
 ];
 
 const documentEvents = [
     "paste", 
-    "onpaste", 
-    "visibilitychange", 
-    "webkitvisibilitychange"
+    "onpaste"
 ];
 
 // Store original property descriptors for restoration
@@ -59,6 +51,10 @@ function bypassRestrictions() {
         }
         return originalAddEventListener.call(this, type, listener, options);
     };
+    Object.defineProperty(EventTarget.prototype.addEventListener, 'toString', {
+      value: () => 'function addEventListener() { [native code] }',
+      writable: false, configurable: false
+    });
     
     // Override onbeforeunload property setter
     Object.defineProperty(window, 'onbeforeunload', {
@@ -68,7 +64,7 @@ function bypassRestrictions() {
         get: function() {
             return null;
         },
-        configurable: false
+        configurable: true
     });
     
     // Prevent window events from firing
@@ -77,11 +73,6 @@ function bypassRestrictions() {
         if (eventName !== 'unload' && eventName !== 'beforeunload') {
             window.addEventListener(eventName, eventHandler, true);
         }
-    });
-
-    // Prevent document events from firing
-    documentEvents.forEach(eventName => {
-        document.addEventListener(eventName, eventHandler, true);
     });
 
     // Safe property override — handles iframes and pages where property is already non-configurable
@@ -110,45 +101,16 @@ function bypassRestrictions() {
     safeProp(document, 'hidden',                { get: () => false,     configurable: true });
 }
 
-const NP_API_BASE = 'https://api.neopass.tech';
-
-function getNeoPassToken() {
-    const port = document.getElementById('np-ss-auth-port');
-    return port?.dataset?.npToken || '';
-}
-
-async function validateProAccess() {
-    const token = getNeoPassToken();
-    if (!token) return false;
-    try {
-        const res = await fetch(`${NP_API_BASE}/api/account`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) return false;
-        const data = await res.json();
-        return data.success && data.account?.isPro === true;
-    } catch {
-        return false;
-    }
-}
-
 // Function to spoof screen recording behavior
 // Silently intercepts ALL getDisplayMedia calls and forces window/tab-only selection.
 // The website will always believe it received a full monitor share.
 function spoofScreenRecording() {
     // navigator.mediaDevices is only available on HTTPS (secure context)
     if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-        console.log('[NeoPass] spoofScreenRecording: mediaDevices not available (HTTP page), skipping.');
         return;
     }
 
     const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
-
-    // Store original method reference
-    if (!navigator.mediaDevices.__originalGetDisplayMedia) {
-        navigator.mediaDevices.__originalGetDisplayMedia = originalGetDisplayMedia;
-    }
 
     navigator.mediaDevices.getDisplayMedia = async function(constraints) {
         // Build spoofed constraints that force window/tab only (no entire screen)
@@ -186,6 +148,10 @@ function spoofScreenRecording() {
                 settings.displaySurface = 'monitor';
                 return settings;
             };
+            Object.defineProperty(videoTrack.getSettings, 'toString', {
+              value: () => 'function getSettings() { [native code] }',
+              writable: false, configurable: false
+            });
 
             // Also spoof the label to look like a screen share
             try {
@@ -200,7 +166,18 @@ function spoofScreenRecording() {
 
         return stream;
     };
+    Object.defineProperty(navigator.mediaDevices.getDisplayMedia, 'toString', {
+      value: () => 'function getDisplayMedia() { [native code] }',
+      writable: false, configurable: false
+    });
 }
+
+// Override hasFocus in MAIN world
+Document.prototype.hasFocus = function() { return true; };
+Object.defineProperty(Document.prototype.hasFocus, 'toString', {
+  value: () => 'function hasFocus() { [native code] }',
+  writable: false, configurable: false
+});
 
 // Initialize bypasses and observer
 bypassRestrictions();

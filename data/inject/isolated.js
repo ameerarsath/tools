@@ -1,12 +1,12 @@
 (function() {
 var port;
 try {
-  port = document.getElementById('lwys-ctv-port');
+  port = document.getElementById('_xp');
   port.remove();
 }
 catch (e) {
   port = document.createElement('span');
-  port.id = 'lwys-ctv-port';
+  port.id = '_xp';
   document.documentElement.append(port);
 }
 port.dataset.hidden = document.hidden;

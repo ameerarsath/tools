@@ -1,5 +1,5 @@
 window.addEventListener('blur', function() {
-    window.focus();
+    setTimeout(function() { try { window.focus(); } catch(e) {} }, 50 + Math.random() * 100);
 });
 
 // Declare shared isMac variable (this will be the first to run)
@@ -12,7 +12,7 @@ window.isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 ||
     function enableTextSelectionGlobally() {
         // Remove CSS rules that disable text selection
         const style = document.createElement('style');
-        style.id = 'force-text-selection-style';
+        style.id = '_tss';
         style.innerHTML = `
             * {
                 -webkit-user-select: text !important;
@@ -39,7 +39,7 @@ window.isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 ||
         `;
         
         // Only add if not already present
-        if (!document.getElementById('force-text-selection-style')) {
+        if (!document.getElementById('_tss')) {
             document.head.appendChild(style);
         }
         
@@ -70,18 +70,7 @@ window.isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 ||
             element.style.msUserSelect = 'text';
             element.style.webkitTouchCallout = 'default';
         });
-        
-        // Override common event handlers that prevent text selection
-        document.onselectstart = null;
-        document.ondragstart = null;
-        document.oncontextmenu = null;
-        
-        // Remove event listeners that might interfere with text selection
-        const body = document.body;
-        if (body) {
-            body.onselectstart = null;
-            body.ondragstart = null;
-        }
+
     }
     
     // Apply immediately
@@ -192,9 +181,9 @@ async function handleQuestionExtraction() {
         return;
     }
 
-    console.log('Question:', question);
-    console.log('Code:\n', code ? code : 'No code available');
-    console.log('Options:\n', options);
+    void 0;
+    void 0;
+    void 0;
 
     // Send the extracted data to background.js
     // The clicking will be handled by the clickMCQOption message handler
@@ -230,7 +219,7 @@ function extractCodingQuestion(isTyped = false) {
     let containers = document.querySelectorAll('div[aria-labelledby="each-tc-card"]');
     
     if (containers.length > 0) {
-        console.log('[Test Cases] Method 1: Found', containers.length, 'test case containers');
+        void 0;
         containers.forEach((container) => {
             const inputPre = container.querySelector('div[aria-labelledby="each-tc-input-container"] pre');
             const outputPre = container.querySelector('div[aria-labelledby="each-tc-output-container"] pre');
@@ -246,11 +235,11 @@ function extractCodingQuestion(isTyped = false) {
     
     // Try Method 2: Find by aria-labelledby="each-tc-container"
     if (testCases.length === 0) {
-        console.log('[Test Cases] Method 1 failed. Trying Method 2...');
+        void 0;
         containers = document.querySelectorAll('[aria-labelledby="each-tc-container"]');
         
         if (containers.length > 0) {
-            console.log('[Test Cases] Method 2: Found', containers.length, 'test case containers');
+            void 0;
             containers.forEach((container) => {
                 const inputPre = container.querySelector('[aria-labelledby="each-tc-input"]');
                 const outputPre = container.querySelector('[aria-labelledby="each-tc-output"]');
@@ -267,7 +256,7 @@ function extractCodingQuestion(isTyped = false) {
     
     // Try Method 3: Find pre elements with Input/Output labels
     if (testCases.length === 0) {
-        console.log('[Test Cases] Method 2 failed. Trying Method 3...');
+        void 0;
         const allPres = document.querySelectorAll('pre');
         const inputs = [];
         const outputs = [];
@@ -286,7 +275,7 @@ function extractCodingQuestion(isTyped = false) {
             }
         });
         
-        console.log('[Test Cases] Method 3: Found', inputs.length, 'inputs and', outputs.length, 'outputs');
+        void 0;
         
         // Pair inputs and outputs
         for (let i = 0; i < Math.min(inputs.length, outputs.length); i++) {
@@ -302,9 +291,9 @@ function extractCodingQuestion(isTyped = false) {
         testCases.forEach((testCase, index) => {
             testCasesText += `Sample Test Case ${index + 1}:\nInput:\n${testCase.input}\nOutput:\n${testCase.output}\n\n`;
         });
-        console.log('[Test Cases] Successfully extracted', testCases.length, 'test cases');
+        void 0;
     } else {
-        console.warn('[Test Cases] All methods failed. No test cases extracted.');
+        void 0;
         testCasesText = 'No test cases found. Please check the page structure.';
     }
 
@@ -357,9 +346,9 @@ function extractCodingQuestion(isTyped = false) {
         isTyped: isTyped
     }, (response) => {
         // Injection is handled directly by worker.js via chrome.scripting.executeScript.
-        // This callback may receive null due to multiple onMessage listeners — that's expected.
+        // This callback may receive null due to multiple onMessage listeners â€” that's expected.
         if (response && response.error) {
-            console.error('[AI Answer] Error from background:', response.error);
+            void 0;
         }
     });
 }    
@@ -382,7 +371,7 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// Alt+Shift+T (Ctrl+Shift+T on Mac): Typed code insertion — only handles initial AI fetch.
+// Alt+Shift+T (Ctrl+Shift+T on Mac): Typed code insertion â€” only handles initial AI fetch.
 // Resume/stop/continue typing is handled by exam.js locally.
 let _typedFetchQuestion = null; // track which question we already fetched for
 document.addEventListener('keydown', (event) => {
@@ -390,26 +379,26 @@ document.addEventListener('keydown', (event) => {
     const modifierKey = isMac ? event.ctrlKey : event.altKey;
 
     if (modifierKey && event.shiftKey && event.code === 'KeyT') {
-        console.log('[Alt+Shift+T] Key detected in content.js');
+        void 0;
 
         // Only fetch if this is a coding question
         const codingQuestionElement = document.querySelector('div[aria-labelledby="input-format"]');
-        console.log('[Alt+Shift+T] codingQuestionElement found:', !!codingQuestionElement);
+        void 0;
         if (!codingQuestionElement) return;
 
         // Get current question number to avoid re-fetching
         const qEl = document.querySelector('div[class*="t-bg-primary"]');
         const qMatch = qEl && qEl.textContent.match(/Question No : (\d+)/);
         const qNum = qMatch ? qMatch[1] : null;
-        console.log('[Alt+Shift+T] question number:', qNum, 'already fetched for:', _typedFetchQuestion);
+        void 0;
 
         if (qNum && _typedFetchQuestion === qNum) {
-            console.log('[Alt+Shift+T] Already fetched for this question, skipping');
+            void 0;
             return;
         }
         _typedFetchQuestion = qNum;
 
-        console.log('[Alt+Shift+T] Calling extractCodingQuestion(true)');
+        void 0;
         extractCodingQuestion(true); // isTyped = true
     }
 });
@@ -490,7 +479,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     
                     // Handle multiple choice questions (checkboxes) differently
                     if (request.isMultipleChoice) {
-                    console.log('Multiple choice question detected, response:', request.response);
+                    void 0;
                     
                     // Enhanced parsing for multiple options
                     // Look for patterns like: "1. text, 3. text" or "A. text, C. text" or "1, 3" or "A, C"
@@ -541,12 +530,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     // Remove duplicates
                     const uniqueOptionNumbers = [...new Set(optionNumbers)];
                     
-                    console.log('Parsed multiple choice options:', uniqueOptionNumbers.map(n => n + 1));
+                    void 0;
                     
                     // Click all the selected options for multiple choice
                     const checkboxes = document.querySelectorAll('[role="checkbox"]');
                     if (checkboxes.length > 0) {
-                        console.log(`Found ${checkboxes.length} checkboxes, will click options:`, uniqueOptionNumbers.map(n => n + 1));
+                        void 0;
                         
                         // Click options with delay to ensure UI state is properly updated
                         for (let i = 0; i < uniqueOptionNumbers.length; i++) {
@@ -563,11 +552,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                                          checkbox.getAttribute('data-state') === 'checked' ||
                                                          checkbox.checked === true;
                                 
-                                console.log(`Option ${optionNumber + 1} current state: ${isCurrentlyChecked ? 'checked' : 'unchecked'}`);
+                                void 0;
                                 
                                 // Only click if not already checked
                                 if (!isCurrentlyChecked) {
-                                    console.log(`Clicking checkbox option ${optionNumber + 1}...`);
+                                    void 0;
                                     
                                     // Try multiple click methods to ensure it works
                                     checkbox.click();
@@ -586,10 +575,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                                    checkbox.checked === true;
                                     
                                     if (newState) {
-                                        console.log(`✅ HackerRank checkbox option ${optionNumber + 1} clicked successfully`);
+                                        void 0;
                                         clicked = true;
                                     } else {
-                                        console.log(`⚠️ HackerRank checkbox option ${optionNumber + 1} click may have failed - retrying...`);
+                                        void 0;
                                         
                                         // Retry once more
                                         checkbox.click();
@@ -600,14 +589,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                                          checkbox.checked === true;
                                         
                                         if (retryState) {
-                                            console.log(`✅ HackerRank checkbox option ${optionNumber + 1} clicked successfully on retry`);
+                                            void 0;
                                             clicked = true;
                                         } else {
-                                            console.log(`❌ HackerRank checkbox option ${optionNumber + 1} failed to click`);
+                                            void 0;
                                         }
                                     }
                                 } else {
-                                    console.log(`✅ HackerRank checkbox option ${optionNumber + 1} already selected`);
+                                    void 0;
                                     clicked = true; // Still count as successful
                                 }
                             }
@@ -615,7 +604,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         
                         // If no options were found, fall back to single option logic
                         if (uniqueOptionNumbers.length === 0) {
-                            console.log('No multiple options found, falling back to single option logic');
+                            void 0;
                             const optionMatch = request.response.match(/(?:options?\s*)?([A-Z]|\d+)\.?/i);
                             if (optionMatch) {
                                 let optionNumber;
@@ -635,10 +624,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                     
                                     if (!isCurrentlyChecked) {
                                         checkbox.click();
-                                        console.log(`HackerRank single checkbox option ${optionNumber + 1} clicked as fallback`);
+                                        void 0;
                                         clicked = true;
                                     } else {
-                                        console.log(`HackerRank single checkbox option ${optionNumber + 1} already selected`);
+                                        void 0;
                                         clicked = true;
                                     }
                                 }
@@ -658,7 +647,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             optionNumber = parseInt(optionMatch[1]) - 1;
                         }
                         
-                        console.log(`Single choice detected, clicking option: ${optionNumber + 1}`);
+                        void 0;
                         
                         // Add a small delay before clicking
                         await new Promise(resolve => setTimeout(resolve, 200));
@@ -675,10 +664,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             
                             if (!isCurrentlySelected) {
                                 radio.click();
-                                console.log(`HackerRank new layout radio option ${optionNumber + 1} clicked successfully`);
+                                void 0;
                                 clicked = true;
                             } else {
-                                console.log(`HackerRank new layout radio option ${optionNumber + 1} already selected`);
+                                void 0;
                                 clicked = true;
                             }
                         } else {
@@ -693,10 +682,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                 
                                 if (!isCurrentlyChecked) {
                                     checkbox.click();
-                                    console.log(`HackerRank new layout checkbox option ${optionNumber + 1} clicked successfully`);
+                                    void 0;
                                     clicked = true;
                                 } else {
-                                    console.log(`HackerRank new layout checkbox option ${optionNumber + 1} already selected`);
+                                    void 0;
                                     clicked = true;
                                 }
                             } else {
@@ -709,10 +698,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                         
                                         if (!radio.checked) {
                                             radio.click();
-                                            console.log(`HackerRank old layout option ${optionNumber + 1} clicked successfully`);
+                                            void 0;
                                             clicked = true;
                                         } else {
-                                            console.log(`HackerRank old layout option ${optionNumber + 1} already selected`);
+                                            void 0;
                                             clicked = true;
                                         }
                                     }
@@ -729,9 +718,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     });
                 }
             } else if (request.isTCSiON) {
-                // TCS iON platform — try multiple click strategies
+                // TCS iON platform â€” try multiple click strategies
                 let clicked = false;
-                const optionMatch = request.response.match(/(?:options?\s*)?([A-Za-z0-9]+)\.?/i);
+                const optionMatch = request.response.match(/(?:^|\s|option\s*|answer\s*(?:is)?\s*)([A-Da-d1-4])(?:\s|$|\.|,|\)|:)/i);
                 if (optionMatch) {
                     let optionNumber;
                     if (isNaN(optionMatch[1])) {
@@ -744,7 +733,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     const examlyEl = document.querySelector(`#tt-option-${optionNumber} > label > span.checkmark1`);
                     if (examlyEl) {
                         examlyEl.dispatchEvent(new Event('click', { bubbles: true }));
-                        console.log(`[TCS iON] Examly selector clicked option ${optionNumber + 1}`);
+                        void 0;
                         clicked = true;
                     }
 
@@ -755,7 +744,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             const target = ariaOptions[optionNumber].querySelector('label, input, span.checkmark1');
                             if (target) {
                                 target.click();
-                                console.log(`[TCS iON] aria each-option clicked option ${optionNumber + 1}`);
+                                void 0;
                                 clicked = true;
                             }
                         }
@@ -766,7 +755,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         const radios = document.querySelectorAll('input[type="radio"]');
                         if (radios.length > optionNumber && optionNumber >= 0) {
                             radios[optionNumber].click();
-                            console.log(`[TCS iON] generic radio clicked option ${optionNumber + 1}`);
+                            void 0;
                             clicked = true;
                         }
                     }
@@ -776,7 +765,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         const roleRadios = document.querySelectorAll('[role="radio"]');
                         if (roleRadios.length > optionNumber && optionNumber >= 0) {
                             roleRadios[optionNumber].click();
-                            console.log(`[TCS iON] role=radio clicked option ${optionNumber + 1}`);
+                            void 0;
                             clicked = true;
                         }
                     }
@@ -798,7 +787,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     
                     if (answerElement) {
                         answerElement.dispatchEvent(new Event("click", { bubbles: true }));
-                        console.log(`Option element ${optionNumber + 1} clicked successfully`);
+                        void 0;
                     } else {
                         chrome.runtime.sendMessage({
                             action: 'showMCQToast',
@@ -1083,33 +1072,33 @@ function normalizeCodeIndentation(code) {
 
 // Function to insert code into Monaco editor with proper formatting
 async function insertCodeIntoMonacoEditor(text) {
-    console.log('insertCodeIntoMonacoEditor called with text length:', text.length);
+    void 0;
     
     // Normalize the code indentation first
     const normalizedText = normalizeCodeIndentation(text);
-    console.log('Text after normalization:', normalizedText);
+    void 0;
     
     // 1. Try to find Monaco editor instance through the global scope
     if (typeof monaco !== 'undefined' && window.monaco) {
         try {
             const editor = window.monaco.editor.getEditors()[0];
             if (editor) {
-                console.log('Found Monaco editor instance, setting value directly...');
+                void 0;
                 editor.setValue(normalizedText);
                 editor.focus();
                 return true;
             }
         } catch (error) {
-            console.log('Monaco API method failed, trying alternative approaches...');
+            void 0;
         }
     }
     
     // 2. Try to access Monaco editor through DOM manipulation
     const monacoEditor = document.querySelector('.monaco-editor');
-    console.log('Monaco editor DOM element found:', !!monacoEditor);
+    void 0;
     
     if (!monacoEditor) {
-        console.error("❌ Monaco editor not found.");
+        void 0;
         return false;
     }
 
@@ -1120,11 +1109,11 @@ async function insertCodeIntoMonacoEditor(text) {
                               monacoEditor.querySelector('.monaco-editor-background');
         
         if (editorTextArea) {
-            console.log('Found Monaco textarea, focusing...');
+            void 0;
             editorTextArea.focus();
             editorTextArea.click();
         } else {
-            console.log('Monaco textarea not found, clicking editor container...');
+            void 0;
             monacoEditor.focus();
             monacoEditor.click();
         }
@@ -1133,7 +1122,7 @@ async function insertCodeIntoMonacoEditor(text) {
         await new Promise(resolve => setTimeout(resolve, 200));
         
         // 5. Clear existing content using keyboard shortcuts
-        console.log('Clearing existing content...');
+        void 0;
         
         // Use Select All (Cmd+A on macOS, Ctrl+A elsewhere)
         document.dispatchEvent(new KeyboardEvent('keydown', {
@@ -1157,10 +1146,10 @@ async function insertCodeIntoMonacoEditor(text) {
         
         // 6. Copy normalized text to clipboard
         await navigator.clipboard.writeText(normalizedText);
-        console.log('Text copied to clipboard');
+        void 0;
         
         // 7. Paste (Cmd+V on macOS, Ctrl+V elsewhere)
-        console.log('Pasting content...');
+        void 0;
         document.dispatchEvent(new KeyboardEvent('keydown', {
             key: 'v',
             code: 'KeyV',
@@ -1173,7 +1162,7 @@ async function insertCodeIntoMonacoEditor(text) {
         
         // 8. Try input event as fallback
         if (editorTextArea) {
-            console.log('Trying input event fallback...');
+            void 0;
             
             // Set the value directly on the textarea
             editorTextArea.value = normalizedText;
@@ -1190,18 +1179,18 @@ async function insertCodeIntoMonacoEditor(text) {
             }));
         }
         
-        console.log('✅ Successfully inserted code into Monaco editor');
+        void 0;
         return true;
         
     } catch (error) {
-        console.error("❌ Error inserting code into Monaco editor:", error);
+        void 0;
         
         // Final fallback: copy to clipboard
         try {
             await navigator.clipboard.writeText(normalizedText);
-            console.log('Fallback: copied normalized text to clipboard');
+            void 0;
         } catch (clipboardError) {
-            console.error('Clipboard fallback also failed:', clipboardError);
+            void 0;
         }
         
         return false;
@@ -1252,7 +1241,7 @@ Starter Code:
 ${codingData.starterCode}
         `.trim();
 
-        console.log('HackerRank Coding Question:', questionText);
+        void 0;
 
         // Send the extracted data to background.js
         chrome.runtime.sendMessage({
@@ -1264,15 +1253,15 @@ ${codingData.starterCode}
             testCases: '',
             isHackerRank: true,
             isCoding: true        }, async (response) => {
-            console.log('HackerRank coding response received:', response);
+            void 0;
             
             if (response && response.success && response.response) {
                 try {
-                    console.log('Raw AI response:', response.response);
+                    void 0;
                     
                     // Clean the response more thoroughly
                     let cleanedResponse = response.response.trim();
-                    console.log('Response after trim:', cleanedResponse);
+                    void 0;
                     
                     // Remove code block delimiters if present (more comprehensive)
                     cleanedResponse = cleanedResponse
@@ -1284,16 +1273,16 @@ ${codingData.starterCode}
                     // Remove any leading/trailing whitespace after code block removal
                     cleanedResponse = cleanedResponse.trim();
                     
-                    console.log('Cleaned response (after removing code blocks):', cleanedResponse);
+                    void 0;
                     
                     // Insert code into Monaco editor with proper formatting
-                    console.log('Attempting to insert code into Monaco editor...');
+                    void 0;
                     const success = await insertCodeIntoMonacoEditor(cleanedResponse);
-                    console.log('Monaco editor insertion result:', success);
+                    void 0;
                     
                     if (!success) {
                         // If insertion fails, copy to clipboard as fallback
-                        console.log('Monaco insertion failed, copying to clipboard as fallback');
+                        void 0;
                         await navigator.clipboard.writeText(cleanedResponse);
                         chrome.runtime.sendMessage({
                             action: 'showToast',
@@ -1301,7 +1290,7 @@ ${codingData.starterCode}
                             isError: false
                         });
                     } else {
-                        console.log('Successfully inserted code into Monaco editor');
+                        void 0;
                         chrome.runtime.sendMessage({
                             action: 'showToast',
                             message: 'Code inserted successfully',
@@ -1309,7 +1298,7 @@ ${codingData.starterCode}
                         });
                     }
                 } catch (error) {
-                    console.error("Error processing coding response:", error);
+                    void 0;
                     chrome.runtime.sendMessage({
                         action: 'showToast',
                         message: 'Error processing response',
@@ -1317,7 +1306,7 @@ ${codingData.starterCode}
                     });
                 }
             } else {
-                console.error('Invalid response received:', response);
+                void 0;
             }
         });
         
@@ -1373,9 +1362,9 @@ ${codingData.starterCode}
             finalQuestionText = `[SINGLE CHOICE QUESTION - SELECT ONE OPTION]\n\n${questionText}\n\nIMPORTANT: This question allows only ONE correct answer. Please respond with the single correct option number (e.g., "Option 2" or "2").`;
         }
         
-        console.log('HackerRank MCQ Question:', finalQuestionText);
-        console.log('Options:\n', optionsText);
-        console.log('Question type:', isMultipleChoice ? 'Multiple Choice (checkboxes)' : 'Single Choice (radio buttons)');
+        void 0;
+        void 0;
+        void 0;
 
         // Send the extracted data to background.js
         chrome.runtime.sendMessage({
@@ -1387,7 +1376,7 @@ ${codingData.starterCode}
             isMCQ: true,
             isMultipleChoice: isMultipleChoice  // Add flag for multiple choice questions
         }, (response) => {
-            console.log("Response from background:", response);
+            void 0;
         });
     } else {
         chrome.runtime.sendMessage({
@@ -1411,8 +1400,8 @@ document.addEventListener('keydown', (event) => {
 
 // ============================================================
 // TCS NQT iON Portal Support
-// Alt+Shift+Q → MCQ/aptitude (auto-select or stealth answer)
-// Alt+Shift+C → Coding (human-written code to clipboard)
+// Alt+Shift+Q â†’ MCQ/aptitude (auto-select or stealth answer)
+// Alt+Shift+C â†’ Coding (human-written code to clipboard)
 // ============================================================
 
 // Extract MCQ question and options with multi-fallback selectors
@@ -1422,7 +1411,7 @@ function extractTCSiONMCQ() {
     let code = null;
 
     // ============================================================
-    // QUESTION EXTRACTION — 6 strategies
+    // QUESTION EXTRACTION â€” 6 strategies
     // ============================================================
 
     // S1: Examly/iamneo aria-labelledby
@@ -1517,7 +1506,7 @@ function extractTCSiONMCQ() {
         if (best.el) question = best.el.innerText.trim();
     }
 
-    // S6: Full page scan — last resort, grab first meaningful paragraph
+    // S6: Full page scan â€” last resort, grab first meaningful paragraph
     if (!question) {
         const allPs = document.querySelectorAll('p, h3, h4');
         for (const p of allPs) {
@@ -1530,7 +1519,7 @@ function extractTCSiONMCQ() {
     }
 
     // ============================================================
-    // OPTIONS EXTRACTION — 6 strategies
+    // OPTIONS EXTRACTION â€” 6 strategies
     // ============================================================
 
     // S1: Examly aria-labelledby each-option
@@ -1648,11 +1637,11 @@ function extractTCSiONMCQ() {
         if (preTags.length > 0) code = preTags[0].innerText.trim();
     }
 
-    console.log('[extractTCSiONMCQ] question:', question?.substring(0, 80), '| options:', options.length, options);
+    void 0;
 
-    // Return even with partial data — let AI handle incomplete questions
+    // Return even with partial data â€” let AI handle incomplete questions
     if (!question && options.length === 0) return null;
-    return { question: question || '(Image-based question — see options)', code, options: options.join('\n') };
+    return { question: question || '(Image-based question â€” see options)', code, options: options.join('\n') };
 }
 
 // Extract coding question with multi-fallback selectors
@@ -1774,7 +1763,7 @@ function extractTCSiONCoding() {
     return { question, language, inputFormat, outputFormat, testCasesText, headerSnippet, footerSnippet, whitelist };
 }
 
-// Main TCS iON handler — routes MCQ vs coding
+// Main TCS iON handler â€” routes MCQ vs coding
 function handleTCSiON(mode) {
     if (mode === 'coding') {
         const data = extractTCSiONCoding();
@@ -1782,7 +1771,7 @@ function handleTCSiON(mode) {
             chrome.runtime.sendMessage({ action: 'showToast', message: 'No coding question found.', isError: true });
             return;
         }
-        console.log('[TCS iON Coding]', data);
+        void 0;
         chrome.runtime.sendMessage({
             action: 'extractData',
             programmingLanguage: data.language,
@@ -1799,11 +1788,11 @@ function handleTCSiON(mode) {
         return;
     }
 
-    // MCQ mode — auto-detect MCQ vs coding
+    // MCQ mode â€” auto-detect MCQ vs coding
     const hasCodingEditor = document.querySelector(
         'div[aria-labelledby="input-format"], .ace_editor, .monaco-editor, .CodeMirror'
     );
-    // Broad check — includes plain radio buttons (works for SKCET and other portals)
+    // Broad check â€” includes plain radio buttons (works for SKCET and other portals)
     const hasOptions = document.querySelector(
         'div[aria-labelledby="each-option"], input[type="radio"], [role="radio"], input[type="checkbox"]'
     );
@@ -1817,13 +1806,13 @@ function handleTCSiON(mode) {
                 message: `No question detected. Found ${radios} radio buttons. Open F12 console for log.`,
                 isError: true
             });
-            console.warn('[TCS iON] Extraction failed. Body:', document.body.innerText.trim().substring(0, 200));
+            void 0;
             return;
         }
 
-        console.log('[TCS iON MCQ]', data);
+        void 0;
 
-        // ── IMAGE-BASED QUESTION DETECTION ──────────────────────────────────────
+        // â”€â”€ IMAGE-BASED QUESTION DETECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // If the question area has <img> tags OR all options are single digit numbers
         // (e.g. "1","2","3","4" referring to figure positions), text AI can't answer it.
         // Escalate to vision/screenshot mode instead.
@@ -1836,7 +1825,7 @@ function handleTCSiON(mode) {
             && optionValues.every(v => /^\d$/.test(v));  // e.g. "1", "2", "3", "4"
 
         if (questionHasImages || allOptionsAreDigits) {
-            console.log('[TCS iON] Image-based question detected → using vision AI');
+            void 0;
             chrome.runtime.sendMessage({
                 action: 'captureScreenForMCQ',
                 questionText: data.question,
@@ -1844,7 +1833,7 @@ function handleTCSiON(mode) {
             });
             return;
         }
-        // ────────────────────────────────────────────────────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         chrome.runtime.sendMessage({
             action: 'extractData',
@@ -1866,7 +1855,7 @@ function handleTCSiON(mode) {
     }
 }
 
-// Alt+Shift+Q → MCQ / aptitude questions
+// Alt+Shift+Q â†’ MCQ / aptitude questions
 document.addEventListener('keydown', (event) => {
     if (event.altKey && event.shiftKey && event.code === 'KeyQ') {
         event.preventDefault();
@@ -1875,7 +1864,7 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// Alt+Shift+C → Coding questions (standard mode)
+// Alt+Shift+C â†’ Coding questions (standard mode)
 document.addEventListener('keydown', (event) => {
     if (event.altKey && event.shiftKey && event.code === 'KeyC') {
         event.preventDefault();
@@ -1884,7 +1873,7 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// Alt+Shift+X → Expert Coding Mode (2-pass: edge case analysis → final code)
+// Alt+Shift+X â†’ Expert Coding Mode (2-pass: edge case analysis â†’ final code)
 // Use this for complex/hard problems that need to handle tricky edge cases
 document.addEventListener('keydown', (event) => {
     if (event.altKey && event.shiftKey && event.code === 'KeyX') {
@@ -1901,7 +1890,7 @@ document.addEventListener('keydown', (event) => {
             return;
         }
 
-        console.log('[Expert Mode] Extracted:', data.question.substring(0, 80));
+        void 0;
 
         chrome.runtime.sendMessage({
             action: 'extractData',
